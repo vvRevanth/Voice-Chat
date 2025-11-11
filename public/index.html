@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VC Voice Chat — Clean UI</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --primary-purple: #8b5cf6;
+        --secondary-blue: #3b82f6;
+        --dark-bg: #f8fafc;
+        --card-bg: #ffffff;
+        --border-color: #e5e7eb;
+        --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --input-mic-color: #64748b; /* Color for the mic icon */
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--dark-bg);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+    }
+
+    .main-container {
+        /* Static size defined here */
+        width: 1000px;
+        height: 650px; /* Fixed height for static size */
+        max-width: 95%;
+        background: var(--card-bg);
+        border-radius: 16px;
+        box-shadow: var(--shadow-light);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 25px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .logo-section {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        color: #64748b;
+    }
+
+    .logo-section .vc-logo {
+        background: linear-gradient(45deg, var(--secondary-blue), var(--primary-purple));
+        color: #ffffff;
+        font-weight: 700;
+        padding: 5px 8px;
+        border-radius: 6px;
+        margin-right: 10px;
+        font-size: 16px;
+    }
+
+    .content-area {
+        display: flex;
+        flex-grow: 1;
+        overflow: hidden; /* Prevent content overflow */
+    }
+
+    .controls-panel {
+        width: 350px;
+        padding: 25px;
+        border-right: 1px solid var(--border-color);
+        /* Ensure controls panel content is scrollable if it exceeds height */
+        overflow-y: auto; 
+    }
+
+    .conversation-panel {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 25px;
+        overflow: hidden; /* Ensures only chat-box scrolls */
+    }
+
+    /* --- Controls Section Styling --- */
+    .controls-panel h3 {
+        font-size: 16px;
+        color: #334155;
+        margin-top: 0;
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+
+    #start-speaking, #stop-listening {
+        width: 100%;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    #start-speaking {
+        background: linear-gradient(90deg, #6366f1, #a855f7);
+        color: #ffffff;
+        box-shadow: 0 4px 10px rgba(99, 102, 241, 0.4);
+        margin-bottom: 10px;
+    }
+
+    #start-speaking:hover {
+        opacity: 0.9;
+    }
+
+    #stop-listening {
+        background-color: #ffffff;
+        color: #94a3b8;
+        border: 1px solid #e2e8f0;
+    }
+
+    #stop-listening:hover {
+        background-color: #f8fafc;
+    }
+
+    .control-group {
+        margin-top: 25px;
+    }
+
+    .control-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: #475569;
+        font-weight: 500;
+    }
+
+    select, input[type="range"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        box-sizing: border-box;
+    }
+
+    /* Custom range slider styling */
+    input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        height: 8px;
+        background: #e0e7ff;
+        border-radius: 5px;
+        margin: 10px 0;
+        padding: 0;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--secondary-blue);
+        cursor: pointer;
+        box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+    }
+    
+    .examples {
+        margin-top: 25px;
+    }
+
+    .example-btn {
+        display: inline-block;
+        padding: 6px 15px;
+        margin-right: 8px;
+        margin-bottom: 8px;
+        border: 1px solid #cbd5e1;
+        border-radius: 5px;
+        background-color: #ffffff;
+        font-size: 14px;
+        color: #475569;
+        cursor: pointer;
+        transition: background-color 0.1s;
+    }
+
+    .example-btn:hover {
+        background-color: #f8fafc;
+    }
+
+    /* --- Conversation Section Styling --- */
+
+    #chat-box {
+        flex-grow: 1;
+        overflow-y: auto; /* Scrollbar here */
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding-right: 15px;
+        padding-bottom: 20px;
+        min-height: 400px; /* Ensure chat box takes up available space */
+    }
+
+    .message {
+        padding: 10px 15px;
+        border-radius: 18px;
+        max-width: 80%;
+        word-wrap: break-word;
+        font-size: 15px;
+        line-height: 1.4;
+        position: relative; /* Needed for the speaking ball */
+    }
+
+    .bot-message {
+        align-self: flex-start;
+        background-color: #f1f5f9;
+        color: #334155;
+        border-bottom-left-radius: 2px;
+    }
+
+    .user-message {
+        align-self: flex-end;
+        background-color: var(--secondary-blue);
+        color: #ffffff;
+        border-bottom-right-radius: 2px;
+    }
+    
+    .speaking-ball {
+        position: absolute;
+        top: 50%;
+        right: -25px; /* Position to the right of the bot message */
+        transform: translateY(-50%);
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: var(--primary-purple);
+        animation: pulse 0.8s infinite alternate;
+        margin-left: 10px;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        100% { transform: scale(1.5); opacity: 0.5; }
+    }
+
+
+    /* --- Input Field Styling --- */
+    .input-container {
+        display: flex;
+        padding-top: 15px;
+        border-top: 1px solid var(--border-color);
+        position: relative; /* For positioning the mic icon */
+    }
+
+    #user-input-wrapper {
+        flex: 1;
+        position: relative;
+        margin-right: 10px;
+    }
+
+    input[type="text"] {
+        width: 100%;
+        padding: 12px 40px 12px 15px; /* Added padding for the mic icon */
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        outline: none;
+        font-size: 15px;
+        box-sizing: border-box;
+    }
+
+    #mic-icon {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--input-mic-color);
+        cursor: pointer;
+        font-size: 18px;
+        transition: color 0.2s;
+    }
+
+    #mic-icon:hover {
+        color: var(--secondary-blue);
+    }
+
+    #send-btn {
+        padding: 0 25px;
+        border-radius: 8px;
+        background-color: var(--secondary-blue);
+        color: #fff;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    #send-btn:hover {
+        background-color: #2563eb;
+    }
+</style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="header">
+            <div class="logo-section">
+                <span class="vc-logo">VC</span>
+                Voice Chat Bot
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="controls-panel">
+                <h3>Controls</h3>
+                <button id="start-speaking">Start speaking</button>
+                <button id="stop-listening" style="display:none;">Stop</button>
+
+                <div class="control-group">
+                    <label for="voice-select">Voice</label>
+                    <select id="voice-select">
+                        <option value="Microsoft David - English (United States)">Microsoft David - English (United States)</option>
+                        </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="speech-rate">Speech rate</label>
+                    <input type="range" id="speech-rate" min="0.5" max="2" step="0.1" value="1.0">
+                </div>
+
+                <div class="examples">
+                    <label style="font-size: 14px; color: #475569; font-weight: 500;">Examples</label>
+                    <div style="margin-top: 5px;">
+                        <button class="example-btn">Life story</button>
+                        <button class="example-btn">Superpower</button>
+                        <button class="example-btn">Top growth areas</button>
+                    </div>
+                </div>
+                </div>
+
+            <div class="conversation-panel">
+                <h3>Conversation</h3>
+                <div id="chat-box">
+                    <div class="bot-message message">Hi — ask me anything. I can speak my answers aloud.</div>
+                </div>
+
+                <div class="input-container">
+                    <div id="user-input-wrapper">
+                        <input type="text" id="user-input" placeholder="Type or speak...">
+                        <span id="mic-icon">🎤</span>
+                    </div>
+                    <button id="send-btn">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const chatBox = document.getElementById("chat-box");
+    const userInput = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-btn");
+    const startSpeakingBtn = document.getElementById("start-speaking");
+    const stopListeningBtn = document.getElementById("stop-listening");
+    const micIcon = document.getElementById("mic-icon");
+    const speechRateInput = document.getElementById("speech-rate");
+    const voiceSelect = document.getElementById("voice-select");
+
+    // --- Voice Setup and Event Listeners ---
+    let recognition = null;
+    if (window.SpeechRecognition || window.webkitSpeechRecognition) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.lang = "en-US";
+        recognition.interimResults = false;
+
+        // Unified event handler for starting recognition
+        const startRecognition = () => {
+             recognition.start();
+             startSpeakingBtn.style.display = 'none';
+             stopListeningBtn.style.display = 'block';
+             startSpeakingBtn.textContent = 'Listening...';
+             micIcon.style.color = 'red';
+        };
+
+        startSpeakingBtn.addEventListener("click", startRecognition);
+        micIcon.addEventListener("click", startRecognition); // Mic icon click starts speaking
+
+        stopListeningBtn.addEventListener("click", () => {
+            recognition.stop();
+            startSpeakingBtn.style.display = 'block';
+            stopListeningBtn.style.display = 'none';
+            startSpeakingBtn.textContent = 'Start speaking';
+            micIcon.style.color = 'var(--input-mic-color)';
+        });
+
+        recognition.onresult = (e) => {
+            userInput.value = e.results[0][0].transcript;
+            sendMessage();
+        };
+
+        recognition.onend = () => {
+            startSpeakingBtn.style.display = 'block';
+            stopListeningBtn.style.display = 'none';
+            startSpeakingBtn.textContent = 'Start speaking';
+            micIcon.style.color = 'var(--input-mic-color)';
+        };
+
+        recognition.onerror = (e) => {
+            console.error('Speech Recognition Error:', e);
+            startSpeakingBtn.style.display = 'block';
+            stopListeningBtn.style.display = 'none';
+            startSpeakingBtn.textContent = 'Start speaking';
+            micIcon.style.color = 'var(--input-mic-color)';
+        };
+    } else { 
+        startSpeakingBtn.style.display = 'none';
+        stopListeningBtn.style.display = 'none';
+        micIcon.style.display = 'none'; // Hide mic icon if unsupported
+    }
+
+
+    sendBtn.addEventListener("click", sendMessage);
+    userInput.addEventListener("keydown", e => { if(e.key==="Enter") sendMessage(); });
+    
+    document.querySelectorAll('.example-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            userInput.value = btn.textContent;
+            sendMessage();
+        });
+    });
+
+    // Populate voices (Unchanged)
+    function populateVoiceList() {
+      if(typeof speechSynthesis === 'undefined') return;
+      // ... (voice population logic is omitted here for brevity but kept in the HTML block)
+      const voices = speechSynthesis.getVoices();
+      voiceSelect.innerHTML = ''; 
+      const defaultVoiceName = "Microsoft David - English (United States)";
+      let foundDefault = false;
+      voices.forEach((voice) => {
+        const option = document.createElement('option');
+        option.textContent = `${voice.name} (${voice.lang})`;
+        option.setAttribute('data-lang', voice.lang);
+        option.setAttribute('data-name', voice.name);
+        if (voice.name === defaultVoiceName) {
+            option.selected = true;
+            foundDefault = true;
+        }
+        voiceSelect.appendChild(option);
+      });
+      if (!foundDefault && voices.length > 0) {
+        voiceSelect.options[0].selected = true;
+      } else if (voices.length === 0) {
+         const option = document.createElement('option');
+         option.value = defaultVoiceName;
+         option.textContent = defaultVoiceName;
+         voiceSelect.appendChild(option);
+      }
+    }
+    
+    populateVoiceList();
+    if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
+      speechSynthesis.onvoiceschanged = populateVoiceList;
+    }
+
+
+    // --- Core Chat Logic ---
+
+    async function sendMessage(){
+        const message = userInput.value.trim();
+        if(!message) return;
+        appendMessage("user", message);
+        
+        userInput.value = ""; 
+        let botMsgElement = null;
+
+        try {
+            // Placeholder to immediately add the bot message element and the speaking ball
+            botMsgElement = appendMessage("bot", "Thinking...", false, true); 
+            
+            const res = await fetch("http://localhost:3000/api/chat", { 
+                method: "POST", 
+                headers: {"Content-Type":"application/json"},
+                body: JSON.stringify({ message }) 
+            });
+            
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+
+            const data = await res.json();
+            
+            // Update message and speak
+            updateBotMessage(botMsgElement, data.reply);
+            speakText(data.reply);
+
+        } catch (error) {
+            console.error("Fetch Error:", error);
+            // Update the message element with the error
+            const errorText = "Network error: Failed to execute 'json' on 'Response': Unexpected end of JSON input";
+            if (botMsgElement) {
+                updateBotMessage(botMsgElement, errorText, true);
+            } else {
+                 appendMessage("bot", errorText, true);
+            }
+        }
+    }
+
+    // Function to append a new message element
+    function appendMessage(sender, text, isError=false, showSpeakingBall=false){
+        const msg = document.createElement("div");
+        msg.className = `${sender}-message message`;
+        msg.textContent = text;
+        
+        if (isError) {
+             msg.style.color = '#ef4444'; 
+             msg.style.border = '1px solid #fecaca'; 
+             msg.style.backgroundColor = '#fef2f2';
+        }
+
+        if (showSpeakingBall && sender === "bot") {
+            const ball = document.createElement("span");
+            ball.className = "speaking-ball";
+            msg.appendChild(ball);
+        }
+        
+        chatBox.appendChild(msg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        return msg;
+    }
+
+    // Function to update a temporary bot message and remove the speaking ball
+    function updateBotMessage(msgElement, newText, isError=false) {
+        msgElement.textContent = newText;
+        
+        if (isError) {
+             msgElement.style.color = '#ef4444'; 
+             msgElement.style.border = '1px solid #fecaca'; 
+             msgElement.style.backgroundColor = '#fef2f2';
+        }
+        
+        const ball = msgElement.querySelector('.speaking-ball');
+        if (ball) ball.remove();
+        
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+
+    function speakText(text){
+        const speech = new SpeechSynthesisUtterance(text);
+        
+        const selectedOption = voiceSelect.options[voiceSelect.selectedIndex];
+        const voiceName = selectedOption.getAttribute('data-name');
+        
+        const voices = window.speechSynthesis.getVoices();
+        const selectedVoice = voices.find(v => v.name === voiceName);
+        
+        if (selectedVoice) {
+            speech.voice = selectedVoice;
+        }
+
+        speech.rate = parseFloat(speechRateInput.value);
+        
+        // Find the most recent bot message to attach the speaking ball
+        const lastBotMessage = Array.from(chatBox.querySelectorAll('.bot-message')).pop();
+        if (lastBotMessage) {
+            const ball = document.createElement("span");
+            ball.className = "speaking-ball";
+            lastBotMessage.appendChild(ball);
+
+            // Remove the ball when speech is done (or after a timeout as a fallback)
+            speech.onend = () => { if (ball) ball.remove(); };
+            
+            // Fallback for browsers that don't fire onend reliably
+            setTimeout(() => { if (ball) ball.remove(); }, (text.length / 15) * 1000 + 500); // Rough estimate
+        }
+
+        window.speechSynthesis.speak(speech);
+    }
+</script>
+</body>
+</html>
