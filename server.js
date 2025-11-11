@@ -47,5 +47,5 @@ app.post("/api/chat", async (req, res) => {
 });
 
 // ---- Start server
-const PORT = 3000;
-app.listen(PORT, () => console.log(`✅ VoiceBot running on http://localhost:${PORT}`));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
